@@ -343,6 +343,17 @@ def get_total_mac_number(expr):
     """
     return _analysis.GetTotalMacNumber(expr)
 
+def missing_gradient_check(expr):
+    """
+    Check if there is a missing gradient and print it.
+
+    Parameters
+    ----------
+    expr : tvm.relay.Expr
+        The input expression.
+
+    """
+    _analysis.missing_gradient_check(expr)
 
 def unmatched_cases(match, mod=None):
     """
