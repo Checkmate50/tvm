@@ -41,6 +41,12 @@ def test_max_grad():
     fwd_func = relay.Function([x], z)
     check_grad(fwd_func, scale=1e-3)
 
+    axis = 1
+    z = relay.max(x, axis)
+
+    fwd_func = relay.Function([x], z)
+    check_grad(fwd_func, scale=1e-3)
+
 
 if __name__ == "__main__":
     pytest.main()
