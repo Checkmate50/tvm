@@ -48,6 +48,8 @@ from .transform import (
     tile,
     transpose,
     where,
+    repeat,
+    expand_dims
 )
 
 
@@ -298,10 +300,11 @@ def conv2d_grad(orig, grad):
 @register_gradient("max")
 def max_grad(orig, grad):
     """Returns the gradient of max"""
-    # Only support axis=0, since broadcasting orig to x behaves incorrectly
     x, axis = orig.args[0], orig.attrs.axis
-    assert(axis is not None and len(axis) == 1 and int(axis[0]) == 0)
-    orig = broadcast_to_like(orig, x)
+    assert(axis is not None and len(axis) == 1)
+    axis = int(axis[0])
+    orig = expand_dims(orig, axis)
+    orig = repeat(orig, int(x.checked_type.shape[axis]), axis)
     grad = broadcast_to_like(grad, x)
     indicators = cast_like(equal(orig, x), grad)
     return [indicators * grad]
