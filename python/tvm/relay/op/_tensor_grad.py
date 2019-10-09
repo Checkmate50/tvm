@@ -48,6 +48,8 @@ from .transform import (
     tile,
     transpose,
     where,
+    repeat,
+    expand_dims
 )
 
 
@@ -215,6 +217,14 @@ def avg_pool2d_grad(orig, grad):
     return [pool_grad]
 
 
+@register_gradient("nn.global_avg_pool2d")
+def global_avg_pool2d_grad(orig, grad):
+    data = orig.args[0]
+    pool_grad = _nn.avg_pool2d_grad(grad, data, pool_size=(data.checked_type.shape[2], data.checked_type.shape[3]),
+                                    strides=(1,1), padding=(0,0))
+    return [pool_grad]
+
+
 # not implemented, this is only for testing.
 @register_gradient("concatenate")
 def concatenate_grad(orig, grad):
@@ -290,10 +300,11 @@ def conv2d_grad(orig, grad):
 @register_gradient("max")
 def max_grad(orig, grad):
     """Returns the gradient of max"""
-    # Only support axis=0, since broadcasting orig to x behaves incorrectly
     x, axis = orig.args[0], orig.attrs.axis
-    assert(axis is not None and len(axis) == 1 and int(axis[0]) == 0)
-    orig = broadcast_to_like(orig, x)
+    assert(axis is not None and len(axis) == 1)
+    axis = int(axis[0])
+    orig = expand_dims(orig, axis)
+    orig = repeat(orig, int(x.checked_type.shape[axis]), axis)
     grad = broadcast_to_like(grad, x)
     indicators = cast_like(equal(orig, x), grad)
     return [indicators * grad]
