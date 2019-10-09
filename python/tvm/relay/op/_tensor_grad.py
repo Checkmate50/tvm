@@ -215,6 +215,14 @@ def avg_pool2d_grad(orig, grad):
     return [pool_grad]
 
 
+@register_gradient("nn.global_avg_pool2d")
+def global_avg_pool2d_grad(orig, grad):
+    data = orig.args[0]
+    pool_grad = _nn.avg_pool2d_grad(grad, data, pool_size=(data.checked_type.shape[2], data.checked_type.shape[3]),
+                                    strides=(1,1), padding=(0,0))
+    return [pool_grad]
+
+
 # not implemented, this is only for testing.
 @register_gradient("concatenate")
 def concatenate_grad(orig, grad):
